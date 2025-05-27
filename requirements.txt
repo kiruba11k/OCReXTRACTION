@@ -1,0 +1,9 @@
+streamlit
+pytesseract
+Pillow
+langchain
+langgraph
+llama-cpp-python
+tqdm
+numpy
+requests
