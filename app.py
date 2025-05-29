@@ -2,7 +2,7 @@ import os
 from PIL import Image
 import pytesseract
 import streamlit as st
-
+from typing import TypedDict
 from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
@@ -13,7 +13,10 @@ if not GROQ_API_KEY:
     st.error("Add GROQ_API_KEY to `.streamlit/secrets.toml`")
     st.stop()
 
-
+class MyState(TypedDict):
+    image_path: str
+    text: str
+    entities: list
 llm = ChatGroq(
     model="mixtral-8x7b-32768",
     groq_api_key=GROQ_API_KEY,
@@ -39,7 +42,7 @@ Text:
     state["output"] = response.content.strip()
     return state
 
-workflow = StateGraph()
+workflow = StateGraph(state_schema=MyState)
 workflow.add_node("OCR", ocr_step)
 workflow.add_node("NER", ner_step)
 workflow.set_entry_point("OCR")
