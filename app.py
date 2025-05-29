@@ -28,7 +28,7 @@ Text:
     """
 
     payload = {
-        "model": "mixtral-8x7b-32768",
+        "model": "Mixtral-8x7B",
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.2,
     }
