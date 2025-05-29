@@ -1,4 +1,6 @@
 pytesseract
 streamlit
 pillow
-requests
+langchain
+langgraph
+openai
