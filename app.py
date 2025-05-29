@@ -1,63 +1,67 @@
 import os
-import pytesseract
 from PIL import Image
+import pytesseract
 import streamlit as st
-import requests
+
+from langchain_core.messages import HumanMessage
+from langchain_groq import ChatGroq
+from langgraph.graph import StateGraph, END
+from langgraph.prebuilt import tools_condition
 
 GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
 if not GROQ_API_KEY:
-    st.error("Please set your Groq API key in `.streamlit/secrets.toml` as GROQ_API_KEY.")
+    st.error("Add GROQ_API_KEY to `.streamlit/secrets.toml`")
     st.stop()
 
-API_URL = "https://api.groq.com/openai/v1/chat/completions"
-headers = {
-    "Authorization": f"Bearer {GROQ_API_KEY}",
-    "Content-Type": "application/json"
-}
 
-def extract_text_from_image(image_file):
-    image = Image.open(image_file)
-    return pytesseract.image_to_string(image)
+llm = ChatGroq(
+    model="mixtral-8x7b-32768",
+    groq_api_key=GROQ_API_KEY,
+    temperature=0.2,
+)
 
-def query_groq(text):
+
+def ocr_step(state):
+    image = state["image"]
+    text = pytesseract.image_to_string(Image.open(image))
+    state["text"] = text
+    return state
+
+def ner_step(state):
+    text = state["text"]
     prompt = f"""
 Extract Name, Designation, and Company from this text and return only tab-separated values. One entry per line. No explanation.
 
 Text:
 {text.strip()}
-    """
+"""
+    response = llm.invoke([HumanMessage(content=prompt)])
+    state["output"] = response.content.strip()
+    return state
 
-    payload = {
-        "model": "Mixtral-8x7B",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.2,
-    }
+workflow = StateGraph()
+workflow.add_node("OCR", ocr_step)
+workflow.add_node("NER", ner_step)
+workflow.set_entry_point("OCR")
+workflow.add_edge("OCR", "NER")
+workflow.set_finish_point("NER")
+graph = workflow.compile()
 
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        return response.json()['choices'][0]['message']['content'].strip()
-    except Exception as e:
-        return f"[Error] Groq API call failed: {e}"
+st.title("OCR bot")
 
-st.title(" Image NER Chatbot")
-
-uploaded_files = st.file_uploader(
-    "Upload image files (JPEG/PNG)", accept_multiple_files=True, type=["png", "jpg", "jpeg"]
-)
+uploaded_files = st.file_uploader("Upload image(s)", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
 
 if uploaded_files:
-    all_outputs = []
+    results = []
     for uploaded_file in uploaded_files:
         st.image(uploaded_file, width=250)
-        with st.spinner("Extracting text and querying Groq..."):
-            extracted_text = extract_text_from_image(uploaded_file)
-            groq_response = query_groq(extracted_text)
-            all_outputs.append(groq_response)
+        with st.spinner("Extracting..."):
+            result = graph.invoke({"image": uploaded_file})
+            results.append(result["output"])
 
-    st.markdown("###  Extracted Results ")
-    final_result = "\n".join(all_outputs)
-    st.code(final_result, language="tsv")
-    st.download_button("⬇ Download TSV", final_result, file_name="entities.tsv")
+    st.markdown("### Extracted TSV Output")
+    result_text = "\n".join(results)
+    st.code(result_text, language="tsv")
+    st.download_button("⬇ Download TSV", result_text, file_name="entities.tsv")
 else:
-    st.info("Please upload one or more image files to begin.")
+    st.info("Upload at least one image to begin.")
