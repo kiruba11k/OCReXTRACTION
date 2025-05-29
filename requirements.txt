@@ -4,3 +4,7 @@ pillow
 langchain
 langgraph
 openai
+langchain-community
+langchain_huggingface
+langchain_openai
+langchain-groq
