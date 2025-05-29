@@ -7,4 +7,4 @@ openai
 langchain-community
 langchain_huggingface
 langchain_openai
-langchain-groq
+langchain_groq
