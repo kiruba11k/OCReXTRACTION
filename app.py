@@ -23,7 +23,7 @@ class MyState(TypedDict):
 
 # Load LLM
 llm = ChatGroq(
-    model="Mixtral-8x7B-v0.1",
+    model="mistral-saba-24b",
     groq_api_key=GROQ_API_KEY,
     temperature=0.2,
 )
