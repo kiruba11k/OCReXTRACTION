@@ -56,7 +56,7 @@ def ocr_step(state: MyState) -> MyState:
 
 # Named Entity Extraction
 def ner_step(state: MyState) -> MyState:
-    text = state["text
+    text = state["text"]
     st.markdown("### Extracted Content")
     st.code(text, language="tsv")
     
