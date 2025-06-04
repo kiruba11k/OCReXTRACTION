@@ -56,7 +56,11 @@ def ocr_step(state: MyState) -> MyState:
 
 # Named Entity Extraction
 def ner_step(state: MyState) -> MyState:
-    text = state["text"]
+    text = state["text
+    st.markdown("### Extracted Content")
+    st.code(text, language="tsv")
+    
+
     prompt = f"""
 Extract Name, Designation, and Company from this text and return only tab-separated values with respected rows and columns if not found then write not found. One entry per line.Make it more accuarte
 Text:
