@@ -62,7 +62,7 @@ def ner_step(state: MyState) -> MyState:
     
 
     prompt = f"""
-Extract Name, Designation, and Company from this text and return only tab-separated values with respected rows and columns if not found then write not found. One entry per line.Make it more accuarte
+Extract Name, Designation, and Company from this text and return only tab-separated values with respected rows and columns . One entry per line.Make it more accuarte
 Text:
 {text.strip()}
 """
