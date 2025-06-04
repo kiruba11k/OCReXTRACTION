@@ -58,8 +58,7 @@ def ocr_step(state: MyState) -> MyState:
 def ner_step(state: MyState) -> MyState:
     text = state["text"]
     prompt = f"""
-Extract Name, Designation, and Company from this text and return only tab-separated values. One entry per line. No explanation.
-
+Extract Name, Designation, and Company from this text and return only tab-separated values with respected rows and columns if not found then write not found. One entry per line.Make it more accuarte
 Text:
 {text.strip()}
 """
