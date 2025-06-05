@@ -21,14 +21,12 @@ class MyState(TypedDict):
     text: str
     output: str
 
-# Load LLM
 llm = ChatGroq(
     model="mistral-saba-24b",
     groq_api_key=GROQ_API_KEY,
     temperature=0.2,
 )
 
-# OCR with preprocessing
 def ocr_step(state: MyState) -> MyState:
     uploaded_file = state.get("image")
     if uploaded_file is None:
@@ -54,7 +52,6 @@ def ocr_step(state: MyState) -> MyState:
     state["text"] = text
     return state
 
-# Named Entity Extraction
 def ner_step(state: MyState) -> MyState:
     text = state["text"]
     st.markdown("### Extracted Content")
@@ -70,7 +67,6 @@ Text:
     state["output"] = response.content.strip()
     return state
 
-# Define graph workflow
 workflow = StateGraph(state_schema=MyState)
 workflow.add_node("OCR", ocr_step)
 workflow.add_node("NER", ner_step)
@@ -79,7 +75,6 @@ workflow.add_edge("OCR", "NER")
 workflow.set_finish_point("NER")
 graph = workflow.compile()
 
-# Streamlit UI
 st.title("OCR Extraction")
 
 uploaded_files = st.file_uploader(" Upload images", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
@@ -89,7 +84,6 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         st.image(uploaded_file, width=250)
         with st.spinner("Extracting..."):
-            # Use BytesIO so file can be re-read safely
             file_copy = BytesIO(uploaded_file.read())
             file_copy.seek(0)
             result = graph.invoke({"image": file_copy})
