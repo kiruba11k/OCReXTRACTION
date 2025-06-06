@@ -131,7 +131,7 @@ if uploaded_files:
             rows = json.loads(json_str)
             for row in rows:
                 all_rows.append({
-                    # "Image #": f"Image {idx+1}",
+                    "Image #": f"Image {idx+1}",
                     "Name": row.get("Name", ""),
                     "Designation": row.get("Designation", ""),
                     "Company": row.get("Company", "")
