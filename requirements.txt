@@ -9,3 +9,4 @@ langchain_huggingface
 langchain_openai
 langchain_groq
 opencv-python
+langchain_openai
