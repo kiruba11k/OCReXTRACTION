@@ -79,8 +79,13 @@ Your job is to find triplets of people with:
 - Designation
 - Company
 
-Return the result as a JSON list of objects like:
-[{{"Name": "...", "Designation": "...", "Company": "..."}}]
+Respond ONLY with a valid JSON list of objects in this format:
+[
+  {{"Name": "John Doe", "Designation": "CEO", "Company": "OpenAI"}},
+  ...
+]
+
+DO NOT add any explanation or text before or after the JSON.
 
 Text:
 {text.strip()}
