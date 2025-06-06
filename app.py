@@ -13,11 +13,11 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import tools_condition
 
-#GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
-OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
+# OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
 
-if not OPENAI_API_KEY:
-    st.error("Add OPENAI_API_KEY to `.streamlit/secrets.toml`")
+if not GROQ_API_KEY:
+    st.error("Add GROQ_API_KEY to `.streamlit/secrets.toml`")
     st.stop()
 
 class MyState(TypedDict):
@@ -28,7 +28,7 @@ class MyState(TypedDict):
 llm = ChatGroq(
     model="llama3-70b-8192",
     groq_api_key=GROQ_API_KEY,
-    temperature=0.2,
+    temperature=0.2,)
 # llm = ChatGroq(
 #     model="mistral-saba-24b",
 #     groq_api_key=GROQ_API_KEY,
