@@ -25,15 +25,15 @@ class MyState(TypedDict):
     text: str
     output: str
 
-llm = ChatGroq(
-    model="llama3-70b-8192",
-    groq_api_key=GROQ_API_KEY,
-    temperature=0.2,)
 # llm = ChatGroq(
-#     model="mistral-saba-24b",
+#     model="llama3-70b-8192",
 #     groq_api_key=GROQ_API_KEY,
-#     temperature=0.2,
-# )
+#     temperature=0.2,)
+llm = ChatGroq(
+    model="mistral-saba-24b",
+    groq_api_key=GROQ_API_KEY,
+    temperature=0.2,
+)
 # llm = ChatOpenAI(
 #     model="gpt-4o-mini",  # or "gpt-3.5-turbo"
 #     openai_api_key=OPENAI_API_KEY,
