@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import pytesseract
+import pandas as pd
 import streamlit as st
 from io import BytesIO
 from typing import TypedDict
@@ -101,9 +102,26 @@ if uploaded_files:
             result = graph.invoke({"image": file_copy})
             results.append(result["output"])
 
-    st.markdown("### Extracted TSV Output")
-    result_text = "\n".join(results)
-    st.code(result_text, language="tsv")
-    st.download_button("Download TSV", result_text, file_name="entities.tsv")
-else:
-    st.info("Upload at least one image to begin.")
+    st.markdown("### Extracted Entities Table")
+
+    all_rows = []
+    for res in results:
+        # Split each line and then split by tabs
+        lines = res.strip().split("\n")
+        for line in lines:
+            parts = line.split("\t")
+            if len(parts) == 3:
+                all_rows.append({
+                    "Name": parts[0].strip(),
+                    "Designation": parts[1].strip(),
+                    "Company": parts[2].strip()
+                })
+
+    if all_rows:
+        df = pd.DataFrame(all_rows)
+        st.dataframe(df, use_container_width=True)
+        # Optional: download as CSV
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button("Download CSV", csv, "entities.csv", "text/csv")
+    else:
+        st.warning("No valid rows extracted from the model response.")
