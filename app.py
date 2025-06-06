@@ -14,6 +14,8 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import tools_condition
 import json
+import re
+
 
 GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
 # OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
@@ -27,15 +29,15 @@ class MyState(TypedDict):
     text: str
     output: str
 
-# llm = ChatGroq(
-#     model="llama3-70b-8192",
-#     groq_api_key=GROQ_API_KEY,
-#     temperature=0.2,)
 llm = ChatGroq(
-    model="mistral-saba-24b",
+    model="llama3-70b-8192",
     groq_api_key=GROQ_API_KEY,
-    temperature=0.2,
-)
+    temperature=0.2,)
+# llm = ChatGroq(
+#     model="mistral-saba-24b",
+#     groq_api_key=GROQ_API_KEY,
+#     temperature=0.2,
+# )
 # llm = ChatOpenAI(
 #     model="gpt-4o-mini",  # or "gpt-3.5-turbo"
 #     openai_api_key=OPENAI_API_KEY,
@@ -66,10 +68,15 @@ def ocr_step(state: MyState) -> MyState:
     state["text"] = text
     return state
 
+
+def extract_json_from_text(text):
+    match = re.search(r"\[\s*{.*?}\s*\]", text, re.DOTALL)
+    return match.group(0) if match else "[]"
+
 def ner_step(state: MyState) -> MyState:
     text = state["text"]
     st.markdown("### Extracted Content")
-    st.code(text, language="text")  # Use 'text' instead of 'tsv' if it's unstructured
+    st.code(text, language="text")
 
     prompt = f"""
 Extract all entities from this text.
@@ -81,24 +88,27 @@ Your job is to find triplets of people with:
 
 Respond ONLY with a valid JSON list of objects in this format:
 [
-  {{"Name": "John Doe", "Designation": "CEO", "Company": "OpenAI"}},
-  ...
+  {{"Name": "John Doe", "Designation": "CEO", "Company": "OpenAI"}}
 ]
 
 DO NOT add any explanation or text before or after the JSON.
+Only output JSON.
 
 Text:
 {text.strip()}
 """
+
     response = llm.invoke([HumanMessage(content=prompt)])
-    
+    raw_output = response.content.strip()
+    json_part = extract_json_from_text(raw_output)
+
     try:
-        extracted = json.loads(response.content.strip())
+        extracted = json.loads(json_part)
         df = pd.DataFrame(extracted)
-        state["output"] = df.to_json(orient="records")  # Save as JSON string for later
+        state["output"] = df.to_json(orient="records")
     except Exception as e:
-        st.warning("Failed to parse model output as JSON.")
-        state["output"] = "[]" 
+        st.warning(f"Failed to parse model output as JSON.\n\nRaw Output:\n{raw_output}")
+        state["output"] = "[]"
 
     return state
 
