@@ -105,13 +105,13 @@ if uploaded_files:
     st.markdown("### Extracted Entities Table")
 
     all_rows = []
-    for res in results:
-        # Split each line and then split by tabs
+    for idx, res in enumerate(results):  
         lines = res.strip().split("\n")
         for line in lines:
             parts = line.split("\t")
             if len(parts) == 3:
                 all_rows.append({
+                    "Image #": f"Image {idx+1}",  
                     "Name": parts[0].strip(),
                     "Designation": parts[1].strip(),
                     "Company": parts[2].strip()
@@ -119,9 +119,16 @@ if uploaded_files:
 
     if all_rows:
         df = pd.DataFrame(all_rows)
-        st.dataframe(df, use_container_width=True)
-        # Optional: download as CSV
-        csv = df.to_csv(index=False).encode('utf-8')
+
+        def highlight_by_image(row):
+            img_id = int(row["Image #"].split()[-1])
+            color = "#f9f9f9" if img_id % 2 == 0 else "#e8f5e9"
+            return ["background-color: {}".format(color)] * len(row)
+
+        styled_df = df.style.apply(highlight_by_image, axis=1)
+        st.dataframe(styled_df, use_container_width=True)
+
+        csv = df.to_csv(index=False).encode("utf-8")
         st.download_button("Download CSV", csv, "entities.csv", "text/csv")
     else:
         st.warning("No valid rows extracted from the model response.")
