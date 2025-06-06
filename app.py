@@ -7,7 +7,7 @@ import streamlit as st
 from io import BytesIO
 from typing import TypedDict
 from langchain_core.messages import HumanMessage
-#from langchain_groq import ChatGroq
+from langchain_groq import ChatGroq
 from langchain_community.chat_models import ChatOllama
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph
