@@ -13,6 +13,7 @@ from langchain_community.chat_models import ChatOllama
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import tools_condition
+import json
 
 GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
 # OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY")
@@ -68,17 +69,34 @@ def ocr_step(state: MyState) -> MyState:
 def ner_step(state: MyState) -> MyState:
     text = state["text"]
     st.markdown("### Extracted Content")
-    st.code(text, language="tsv")
-    
+    st.code(text, language="text")  # Use 'text' instead of 'tsv' if it's unstructured
 
     prompt = f"""
-Extract Name, Designation, and Company from this text and return as Combined Table with respected rows and columns . One entry per line.No Explanation.
+Extract all entities from this text.
+
+Your job is to find triplets of people with:
+- Name
+- Designation
+- Company
+
+Return the result as a JSON list of objects like:
+[{{"Name": "...", "Designation": "...", "Company": "..."}}]
+
 Text:
 {text.strip()}
 """
     response = llm.invoke([HumanMessage(content=prompt)])
-    state["output"] = response.content.strip()
+    
+    try:
+        extracted = json.loads(response.content.strip())
+        df = pd.DataFrame(extracted)
+        state["output"] = df.to_json(orient="records")  # Save as JSON string for later
+    except Exception as e:
+        st.warning("Failed to parse model output as JSON.")
+        state["output"] = "[]" 
+
     return state
+
 
 workflow = StateGraph(state_schema=MyState)
 workflow.add_node("OCR", ocr_step)
@@ -102,20 +120,19 @@ if uploaded_files:
             result = graph.invoke({"image": file_copy})
             results.append(result["output"])
 
-    st.markdown("### Extracted Entities Table")
-
     all_rows = []
-    for idx, res in enumerate(results):  
-        lines = res.strip().split("\n")
-        for line in lines:
-            parts = line.split("\t")
-            if len(parts) == 3:
+    for idx, json_str in enumerate(results):
+        try:
+            rows = json.loads(json_str)
+            for row in rows:
                 all_rows.append({
-                    "Image #": f"Image {idx+1}",  
-                    "Name": parts[0].strip(),
-                    "Designation": parts[1].strip(),
-                    "Company": parts[2].strip()
+                    "Image #": f"Image {idx+1}",
+                    "Name": row.get("Name", ""),
+                    "Designation": row.get("Designation", ""),
+                    "Company": row.get("Company", "")
                 })
+        except json.JSONDecodeError:
+            st.error(f"Failed to decode JSON for Image {idx+1}")
 
     if all_rows:
         df = pd.DataFrame(all_rows)
@@ -131,4 +148,4 @@ if uploaded_files:
         csv = df.to_csv(index=False).encode("utf-8")
         st.download_button("Download CSV", csv, "entities.csv", "text/csv")
     else:
-        st.warning("No valid rows extracted from the model response.")
+        st.warning("No valid entities found in any image.")
