@@ -144,7 +144,7 @@ if uploaded_files:
 
         def highlight_by_image(row):
             img_id = int(row["Image #"].split()[-1])
-            color = "#f9f9f9" if img_id % 2 == 0 else "#e8f5e9"
+            color = "#f9f9f9" if img_id % 2 == 0 else "#1ac6d9"
             return ["background-color: {}".format(color)] * len(row)
 
         styled_df = df.style.apply(highlight_by_image, axis=1)
