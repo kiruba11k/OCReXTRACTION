@@ -131,7 +131,7 @@ if uploaded_files:
             rows = json.loads(json_str)
             for row in rows:
                 all_rows.append({
-                    "Image #": f"Image {idx+1}",
+                    # "Image #": f"Image {idx+1}",
                     "Name": row.get("Name", ""),
                     "Designation": row.get("Designation", ""),
                     "Company": row.get("Company", "")
@@ -143,7 +143,7 @@ if uploaded_files:
         df = pd.DataFrame(all_rows)
 
         def highlight_by_image(row):
-            # img_id = int(row["Image #"].split()[-1])
+            img_id = int(row["Image #"].split()[-1])
             color = "#ed47c9" if img_id % 2 == 0 else "#1ac6d9"
             return ["background-color: {}".format(color)] * len(row)
 
