@@ -71,7 +71,7 @@ def ner_step(state: MyState) -> MyState:
     
 
     prompt = f"""
-Extract Name, Designation, and Company from this text and return only tab-separated values with respected rows and columns . One entry per line.No Explanation.
+Extract Name, Designation, and Company from this text and return as Combined Table with respected rows and columns . One entry per line.No Explanation.
 Text:
 {text.strip()}
 """
